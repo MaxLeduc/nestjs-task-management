@@ -1,9 +1,13 @@
 import { PassportStrategy } from '@nestjs/passport'
-import { Strategy, ExtractJwt } from 'passport-jwt'
-import { Injectable, UnauthorizedException } from '@nestjs/common'
-import { JwtPayload } from './jwt-payload.interface'
 import { InjectRepository } from '@nestjs/typeorm'
+import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { Strategy, ExtractJwt } from 'passport-jwt'
+import * as config from 'config'
+
+import { JwtPayload } from './jwt-payload.interface'
 import { UserRepository } from './user.repository'
+
+const { secret } = config.get('jwt')
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -13,7 +17,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: 'foobazbar' // todo: update
+      secretOrKey: process.env.JWT_SECRET || secret,
     })
   }
 
