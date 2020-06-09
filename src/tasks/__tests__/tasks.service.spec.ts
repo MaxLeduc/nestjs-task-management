@@ -15,6 +15,7 @@ const mockTaskRepository = () => ({
   getTasks: jest.fn(),
   findOne: jest.fn(),
   createTask: jest.fn(),
+  delete: jest.fn(),
 })
 
 describe('TaskService', () => {
@@ -76,6 +77,38 @@ describe('TaskService', () => {
       
       expect(taskRepository.createTask).toHaveBeenCalledTimes(1)
       expect(output).toEqual(mockTask)
+    })
+  })
+
+  describe('deleteTask', () => {
+    it('calls taskRepository.delete', async () => {
+      const mockUserId = 1
+      taskRepository.delete.mockResolvedValue({ affected: 1 })
+      
+      tasksService.deleteTaskById(mockUserId, mockUser)
+
+      expect(taskRepository.delete).toHaveBeenCalledTimes(1)
+      expect(taskRepository.delete).toHaveBeenCalledWith({ id: mockUserId, userId: mockUser.id })
+    })
+
+    it('throws an error if task not found', () => {
+      taskRepository.delete.mockResolvedValue({ affected: 0 })
+
+      expect(tasksService.deleteTaskById(1, mockUser)).rejects.toThrow(NotFoundException)
+    })
+  })
+
+  describe('updateTaskStatus', () => {
+    it('updates a task status', async () => {
+      const mockSave = jest.fn().mockResolvedValue(true)
+      tasksService.getTaskById = jest.fn().mockResolvedValue({
+        status: TaskStatus.DONE,
+        save: mockSave
+      })
+      const output = await tasksService.updateTaskStatus(1, TaskStatus.DONE, mockUser)
+  
+      expect(output.status).toEqual(TaskStatus.DONE)
+      expect(mockSave).toHaveBeenCalledTimes(1)
     })
   })
 })
